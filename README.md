@@ -33,6 +33,9 @@ Those who want to get started quickly and conveniently may install Pi-hole using
 curl -sSL https://install.pi-hole.net | bash
 ```
 
+> [!IMPORTANT]
+> This command installs from the **official** Pi-hole installer endpoint. If you are trying to validate behavior from this fork (including recent fork-specific documentation, CI, or hardening updates), use the fork-based install method below so the local `basic-install.sh` from this repository is what runs.
+
 ## Alternative Install Methods
 
 Piping to `bash` is [controversial](https://pi-hole.net/2016/07/25/curling-and-piping-to-bash), as it prevents you from [reading code that is about to run](https://github.com/pi-hole/pi-hole/blob/master/automated%20install/basic-install.sh) on your system. Therefore, we provide these alternative installation methods which allow code review before installation:
@@ -45,12 +48,31 @@ cd "Pi-hole/automated install/"
 sudo bash basic-install.sh
 ```
 
+### Method 1b (Fork users): Clone this fork and run
+
+If you are testing or deploying from this fork, prefer this flow:
+
+```bash
+git clone --depth 1 <YOUR_FORK_URL> Pi-hole-fork
+cd "Pi-hole-fork/automated install/"
+sudo bash basic-install.sh
+```
+
+Tip for controlled rollouts: pin to a reviewed commit/tag before running:
+
+```bash
+git checkout <REVIEWED_TAG_OR_COMMIT>
+sudo bash basic-install.sh
+```
+
 ### Method 2: Manually download the installer and run
 
 ```bash
 wget -O basic-install.sh https://install.pi-hole.net
 sudo bash basic-install.sh
 ```
+
+For stronger supply-chain controls (especially in enterprise or homelab automation), download, review, and verify checksums/signatures before executing scripts. See `docs/security/supply-chain-verification.md` in this fork for a practical baseline workflow.
 
 ### Method 3: Using Docker to deploy Pi-hole
 
@@ -63,6 +85,18 @@ Once the installer has been run, you will need to [configure your router to have
 If your router does not support setting the DNS server, you can [use Pi-hole's built-in DHCP server](https://discourse.pi-hole.net/t/how-do-i-use-pi-holes-built-in-dhcp-server-and-why-would-i-want-to/3026); be sure to disable DHCP on your router first (if it has that feature available).
 
 As a last resort, you can manually set each device to use Pi-hole as their DNS server.
+
+## New-user quick checklist (recommended)
+
+1. Confirm your host meets [Pi-hole prerequisites](https://docs.pi-hole.net/main/prerequisites/).
+2. Choose an install method:
+   - Official endpoint (`install.pi-hole.net`) for mainstream installs.
+   - Fork clone method (above) when validating or deploying fork-specific updates.
+3. After install, set your router's DNS to your Pi-hole host (or use Pi-hole DHCP if needed).
+4. Validate DNS is flowing through Pi-hole:
+   - Open `http://pi.hole/admin/` (or `http://<PI_HOLE_IP>/admin/`).
+   - Run `pihole status` and `pihole -t` on the host.
+5. For managed environments, adopt the checksum/signature and provenance practices in `docs/security/supply-chain-verification.md`.
 
 -----
 
