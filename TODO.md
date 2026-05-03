@@ -18,7 +18,7 @@
 - [ ] Add basic runtime profiling docs and benchmark targets for contributors.
 
 ## P3 - Process, governance, and contributor experience
-- [ ] Add security-focused CI checks (ShellCheck profile + Semgrep rules).
-- [ ] Add supply-chain verification guidance and optional signature/checksum verification mode.
-- [ ] Publish script interaction map to reduce onboarding time.
-- [ ] Add AI-agent quick-context docs to reduce token usage and duplicate analysis.
+- [x] Add security-focused CI checks (ShellCheck profile + Semgrep rules).
+- [x] Add supply-chain verification guidance and optional signature/checksum verification mode.
+- [x] Publish script interaction map to reduce onboarding time.
+- [x] Add AI-agent quick-context docs to reduce token usage and duplicate analysis.
