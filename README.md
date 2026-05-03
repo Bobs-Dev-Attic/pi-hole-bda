@@ -98,6 +98,25 @@ You'll find that the [install script](https://github.com/pi-hole/pi-hole/blob/ma
 
 
 
+
+## TODO Backlog Status (as of 2026-05-03)
+
+Validation against `TODO.md` confirms the backlog is **partially implemented**:
+
+- **P0 (Critical security and integrity):** pending
+- **P1 (High-value reliability and UX):** pending
+- **P2 (Performance and memory efficiency):** pending
+- **P3 (Process, governance, and contributor experience):** completed
+
+Completed P3 deliverables available in-repo:
+
+- Security CI workflow: `.github/workflows/security-shellchecks.yml`
+- Supply-chain verification guide: `docs/security/supply-chain-verification.md`
+- Script interaction map: `docs/contributor/script-interaction-map.md`
+- AI-agent quick-context guide: `docs/contributor/ai-agent-quick-context.md`
+
+-----
+
 ## 2026-05-03 Process and Contributor Experience (P3) Update
 
 This repository now includes a focused P3 documentation and governance uplift:
