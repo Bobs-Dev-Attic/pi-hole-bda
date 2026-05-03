@@ -30,10 +30,9 @@ addOrEditKeyValPair() {
   local key="${2}"
   local value="${3}"
 
-  # Only accept shell-style variable keys to avoid regex/sed injection.
+  # Restrict key syntax to avoid regex/sed injection in pattern contexts
   case "${key}" in
-    [A-Za-z_][A-Za-z0-9_]*) ;;
-    *) return 1 ;;
+    ""|*[!A-Za-z0-9_]*) return 1 ;;
   esac
 
   if grep -q "^${key}=" "${file}"; then
@@ -122,7 +121,7 @@ loadVersionFile() {
       *[!a-zA-Z0-9._/+\-]*) continue ;;
     esac
 
-    # Safe to assign without eval: key is allowlisted and value pre-validated
+    # Safe to assign without eval (explicit dispatch by allowlisted key)
     case "${key}" in
       CORE_VERSION) CORE_VERSION="${value}" ;;
       CORE_BRANCH) CORE_BRANCH="${value}" ;;
