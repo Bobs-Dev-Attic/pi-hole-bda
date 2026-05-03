@@ -96,6 +96,17 @@ If you have something to add - anything from a typo through to a whole new featu
 
 You'll find that the [install script](https://github.com/pi-hole/pi-hole/blob/master/automated%20install/basic-install.sh) and the [debug script](https://github.com/pi-hole/pi-hole/blob/master/advanced/Scripts/piholeDebug.sh) have an abundance of comments, which will help you better understand how Pi-hole works. They're also a valuable resource to those who want to learn how to write scripts or code a program! We encourage anyone who likes to tinker to read through it and submit a pull request for us to review.
 
+
+
+## 2026-05-03 Process and Contributor Experience (P3) Update
+
+This repository now includes a focused P3 documentation and governance uplift:
+
+- Added a dedicated CI workflow for security-focused shell scanning with ShellCheck and Semgrep (`.github/workflows/security-shellchecks.yml`).
+- Added supply-chain verification guidance for checksum/signature-oriented operational hardening (`docs/security/supply-chain-verification.md`).
+- Published a script interaction map to improve onboarding and reduce architecture discovery time (`docs/contributor/script-interaction-map.md`).
+- Added an AI-agent quick-context guide for low-token, consistent repo navigation (`docs/contributor/ai-agent-quick-context.md`).
+
 -----
 
 ## Getting in touch with us
