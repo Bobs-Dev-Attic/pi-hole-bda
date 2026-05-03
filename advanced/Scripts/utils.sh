@@ -30,6 +30,11 @@ addOrEditKeyValPair() {
   local key="${2}"
   local value="${3}"
 
+  # Restrict key syntax to avoid regex/sed injection in pattern contexts
+  case "${key}" in
+    ""|*[!A-Za-z0-9_]*) return 1 ;;
+  esac
+
   if grep -q "^${key}=" "${file}"; then
     # Key already exists in file, modify the value
     sed -i "/^${key}=/c\\${key}=${value}" "${file}"
@@ -85,8 +90,26 @@ loadVersionFile() {
       *[!a-zA-Z0-9._/+\-]*) continue ;;
     esac
 
-    # Safe to assign: key is from the allowlist, value contains no shell metacharacters
-    eval "${key}=\${value}"
+    # Safe to assign without eval (explicit dispatch by allowlisted key)
+    case "${key}" in
+      CORE_VERSION) CORE_VERSION="${value}" ;;
+      CORE_BRANCH) CORE_BRANCH="${value}" ;;
+      CORE_HASH) CORE_HASH="${value}" ;;
+      GITHUB_CORE_VERSION) GITHUB_CORE_VERSION="${value}" ;;
+      GITHUB_CORE_HASH) GITHUB_CORE_HASH="${value}" ;;
+      WEB_VERSION) WEB_VERSION="${value}" ;;
+      WEB_BRANCH) WEB_BRANCH="${value}" ;;
+      WEB_HASH) WEB_HASH="${value}" ;;
+      GITHUB_WEB_VERSION) GITHUB_WEB_VERSION="${value}" ;;
+      GITHUB_WEB_HASH) GITHUB_WEB_HASH="${value}" ;;
+      FTL_VERSION) FTL_VERSION="${value}" ;;
+      FTL_BRANCH) FTL_BRANCH="${value}" ;;
+      FTL_HASH) FTL_HASH="${value}" ;;
+      GITHUB_FTL_VERSION) GITHUB_FTL_VERSION="${value}" ;;
+      GITHUB_FTL_HASH) GITHUB_FTL_HASH="${value}" ;;
+      DOCKER_VERSION) DOCKER_VERSION="${value}" ;;
+      GITHUB_DOCKER_VERSION) GITHUB_DOCKER_VERSION="${value}" ;;
+    esac
   done < "${file}"
 }
 

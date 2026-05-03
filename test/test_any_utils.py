@@ -48,3 +48,35 @@ def test_setFTLConfigValue_getFTLConfigValue(host):
     """)
 
     assert "[ 9.9.9.9 ]" in output.stdout
+
+
+def test_addOrEditKeyValPair_rejects_invalid_key(host):
+    """Confirms invalid keys are rejected and do not mutate the target file"""
+    output = host.run("""
+    source /opt/pihole/utils.sh
+    echo "SAFE_KEY=old" > ./testoutput_invalid_key
+    addOrEditKeyValPair "./testoutput_invalid_key" "BAD.KEY" "new"
+    echo "ret=$?"
+    cat ./testoutput_invalid_key
+    """)
+
+    expected_stdout = "ret=1\nSAFE_KEY=old\n"
+    assert expected_stdout == output.stdout
+
+
+def test_loadVersionFile_loads_allowlisted_values_without_eval(host):
+    """Confirms loadVersionFile loads safe allowlisted key=value pairs"""
+    output = host.run("""
+    source /opt/pihole/utils.sh
+    cat > ./versions-test <<'EOF'
+CORE_VERSION=v6.0
+WEB_BRANCH=master
+FTL_HASH=abc123
+UNRELATED_KEY=ignored
+EOF
+    loadVersionFile "./versions-test"
+    printf '%s|%s|%s\n' "$CORE_VERSION" "$WEB_BRANCH" "$FTL_HASH"
+    """)
+
+    expected_stdout = "v6.0|master|abc123\n"
+    assert expected_stdout == output.stdout
