@@ -48,3 +48,41 @@ def test_setFTLConfigValue_getFTLConfigValue(host):
     """)
 
     assert "[ 9.9.9.9 ]" in output.stdout
+
+
+def test_key_val_rejects_invalid_key(host):
+    """Confirms addOrEditKeyValPair refuses non-variable-style keys"""
+    output = host.run("""
+    source /opt/pihole/utils.sh
+    touch ./testoutput_invalid
+    addOrEditKeyValPair "./testoutput_invalid" "BAD-KEY" "value"
+    echo $? 
+    cat ./testoutput_invalid
+    """)
+    assert output.stdout == "1\n"
+
+
+def test_loadVersionFile_ignores_untrusted_permissions(host):
+    """Confirms loadVersionFile ignores insecure version files"""
+    output = host.run("""
+    source /opt/pihole/utils.sh
+    cat > ./versions << 'EOF'
+CORE_VERSION=v1.2.3
+EOF
+    chmod 666 ./versions
+    CORE_VERSION=""
+    loadVersionFile ./versions
+    echo "${CORE_VERSION}"
+    """)
+    assert output.stdout == "\n"
+
+
+def test_getFTLPID_rejects_untrusted_pidfile_permissions(host):
+    """Confirms getFTLPID returns -1 for insecure PID file"""
+    output = host.run("""
+    source /opt/pihole/utils.sh
+    echo "1234" > ./pihole-FTL.pid
+    chmod 666 ./pihole-FTL.pid
+    getFTLPID ./pihole-FTL.pid
+    """)
+    assert output.stdout == "-1\n"

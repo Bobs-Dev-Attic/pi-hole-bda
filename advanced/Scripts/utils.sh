@@ -30,6 +30,12 @@ addOrEditKeyValPair() {
   local key="${2}"
   local value="${3}"
 
+  # Only accept shell-style variable keys to avoid regex/sed injection.
+  case "${key}" in
+    [A-Za-z_][A-Za-z0-9_]*) ;;
+    *) return 1 ;;
+  esac
+
   if grep -q "^${key}=" "${file}"; then
     # Key already exists in file, modify the value
     sed -i "/^${key}=/c\\${key}=${value}" "${file}"
@@ -37,6 +43,36 @@ addOrEditKeyValPair() {
     # Key does not already exist, add it and it's value
     echo "${key}=${value}" >> "${file}"
   fi
+}
+
+
+#######################
+# Validates that a path is not group/world writable and (optionally) is owned by root.
+# This helps protect reads of security-sensitive files from tampering.
+#
+# Takes two arguments: path, requireRootOwner(0|1)
+# Returns 0 if checks pass, 1 otherwise
+#######################
+verifyPathSecurity() {
+  local path="${1}"
+  local requireRootOwner="${2:-0}"
+  local mode owner
+
+  [ -e "${path}" ] || return 1
+
+  mode="$(stat -c '%a' "${path}" 2>/dev/null)" || return 1
+  owner="$(stat -c '%u' "${path}" 2>/dev/null)" || return 1
+
+  # Reject group or world writable paths
+  case "${mode}" in
+    *[2367][0-7]|*[0-7][2367]) return 1 ;;
+  esac
+
+  if [ "${requireRootOwner}" -eq 1 ] && [ "${owner}" -ne 0 ]; then
+    return 1
+  fi
+
+  return 0
 }
 
 #######################
@@ -54,6 +90,7 @@ loadVersionFile() {
   local line key value
 
   [ -f "${file}" ] || return 0
+  verifyPathSecurity "${file}" 1 || return 0
 
   while IFS= read -r line || [ -n "${line}" ]; do
     # Skip blank lines and comments
@@ -85,8 +122,26 @@ loadVersionFile() {
       *[!a-zA-Z0-9._/+\-]*) continue ;;
     esac
 
-    # Safe to assign: key is from the allowlist, value contains no shell metacharacters
-    eval "${key}=\${value}"
+    # Safe to assign without eval: key is allowlisted and value pre-validated
+    case "${key}" in
+      CORE_VERSION) CORE_VERSION="${value}" ;;
+      CORE_BRANCH) CORE_BRANCH="${value}" ;;
+      CORE_HASH) CORE_HASH="${value}" ;;
+      GITHUB_CORE_VERSION) GITHUB_CORE_VERSION="${value}" ;;
+      GITHUB_CORE_HASH) GITHUB_CORE_HASH="${value}" ;;
+      WEB_VERSION) WEB_VERSION="${value}" ;;
+      WEB_BRANCH) WEB_BRANCH="${value}" ;;
+      WEB_HASH) WEB_HASH="${value}" ;;
+      GITHUB_WEB_VERSION) GITHUB_WEB_VERSION="${value}" ;;
+      GITHUB_WEB_HASH) GITHUB_WEB_HASH="${value}" ;;
+      FTL_VERSION) FTL_VERSION="${value}" ;;
+      FTL_BRANCH) FTL_BRANCH="${value}" ;;
+      FTL_HASH) FTL_HASH="${value}" ;;
+      GITHUB_FTL_VERSION) GITHUB_FTL_VERSION="${value}" ;;
+      GITHUB_FTL_HASH) GITHUB_FTL_HASH="${value}" ;;
+      DOCKER_VERSION) DOCKER_VERSION="${value}" ;;
+      GITHUB_DOCKER_VERSION) GITHUB_DOCKER_VERSION="${value}" ;;
+    esac
   done < "${file}"
 }
 
@@ -100,7 +155,7 @@ getFTLPID() {
     local FTL_PID_FILE="${1}"
     local FTL_PID
 
-    if [ -s "${FTL_PID_FILE}" ]; then
+    if [ -s "${FTL_PID_FILE}" ] && verifyPathSecurity "${FTL_PID_FILE}" 1; then
         # -s: FILE exists and has a size greater than zero
         FTL_PID="$(cat "${FTL_PID_FILE}")"
         # Exploit prevention: unset the variable if there is malicious content
