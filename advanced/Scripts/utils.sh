@@ -44,6 +44,36 @@ addOrEditKeyValPair() {
   fi
 }
 
+
+#######################
+# Validates that a path is not group/world writable and (optionally) is owned by root.
+# This helps protect reads of security-sensitive files from tampering.
+#
+# Takes two arguments: path, requireRootOwner(0|1)
+# Returns 0 if checks pass, 1 otherwise
+#######################
+verifyPathSecurity() {
+  local path="${1}"
+  local requireRootOwner="${2:-0}"
+  local mode owner
+
+  [ -e "${path}" ] || return 1
+
+  mode="$(stat -c '%a' "${path}" 2>/dev/null)" || return 1
+  owner="$(stat -c '%u' "${path}" 2>/dev/null)" || return 1
+
+  # Reject group or world writable paths
+  case "${mode}" in
+    *[2367][0-7]|*[0-7][2367]) return 1 ;;
+  esac
+
+  if [ "${requireRootOwner}" -eq 1 ] && [ "${owner}" -ne 0 ]; then
+    return 1
+  fi
+
+  return 0
+}
+
 #######################
 # Safely loads key=value pairs from the Pi-hole versions cache file.
 # Unlike `source`, this function never executes file content as shell code.
@@ -59,6 +89,7 @@ loadVersionFile() {
   local line key value
 
   [ -f "${file}" ] || return 0
+  verifyPathSecurity "${file}" 1 || return 0
 
   while IFS= read -r line || [ -n "${line}" ]; do
     # Skip blank lines and comments
@@ -123,7 +154,7 @@ getFTLPID() {
     local FTL_PID_FILE="${1}"
     local FTL_PID
 
-    if [ -s "${FTL_PID_FILE}" ]; then
+    if [ -s "${FTL_PID_FILE}" ] && verifyPathSecurity "${FTL_PID_FILE}" 1; then
         # -s: FILE exists and has a size greater than zero
         FTL_PID="$(cat "${FTL_PID_FILE}")"
         # Exploit prevention: unset the variable if there is malicious content
